@@ -19,23 +19,23 @@ double calcPi(long long numsteps) {
 double calcPiParalelo(long long numsteps) {
   omp_set_num_threads(MAXTH);
 
-  double x, pi = 0;
-  double pilocals[MAXTH];
-  int bloque = numsteps / MAXTH;
+  double pi = 0;
 
 #pragma omp parallel
 {
-  double x;
   int id = omp_get_thread_num();
-  pilocals[id] = 0.;
-  for (int i = id*bloque; i < (id+1)*bloque; ++i) {
-    x = i*1. / numsteps;
-    pilocals[id] += 4. / (1. + x*x);
+  double x;
+  double step = 1. / numsteps;
+  int bloque = numsteps / MAXTH;
+  double pilocal = 0.;
+
+  for (int i = id; i < numsteps; i += MAXTH) {
+    x = i * step;
+    pilocal += 4. / (1. + x*x);
   }
+#pragma omp critical
+  pi += pilocal;
 }
-  for (int i = 0; i < MAXTH; ++i) {
-    pi += pilocals[i];
-  }
   return pi / numsteps;
 }
 

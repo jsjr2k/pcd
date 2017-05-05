@@ -8,9 +8,10 @@ using namespace std;
 
 double calcPi(long long numsteps) {
   double x, pi = 0;
+  double step = 1. /numsteps;
 
   for (int i = 0; i < numsteps; ++i) {
-    x = i*1. / numsteps;
+    x = i * step;
     pi += 4. / (1. + x*x);
   }
   return pi / numsteps;
@@ -20,21 +21,12 @@ double calcPiParalelo(long long numsteps) {
   omp_set_num_threads(MAXTH);
 
   double x, pi = 0;
-  double pilocals[MAXTH];
-  int bloque = numsteps / MAXTH;
+  double step = 1. /numsteps;
 
-#pragma omp parallel
-{
-  double x;
-  int id = omp_get_thread_num();
-  pilocals[id] = 0.;
-  for (int i = id*bloque; i < (id+1)*bloque; ++i) {
-    x = i*1. / numsteps;
-    pilocals[id] += 4. / (1. + x*x);
-  }
-}
-  for (int i = 0; i < MAXTH; ++i) {
-    pi += pilocals[i];
+#pragma omp parallel for reduction(+:pi) private(x)
+  for (int i = 0; i < numsteps; ++i) {
+    x = i * step;
+    pi += 4. / (1. + x*x);
   }
   return pi / numsteps;
 }

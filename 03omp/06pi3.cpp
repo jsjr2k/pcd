@@ -25,11 +25,14 @@ double calcPiParalelo(long long numsteps) {
 
 #pragma omp parallel
 {
-  double x;
   int id = omp_get_thread_num();
+  double x;
+  double step = 1. / numsteps;
+  double ini = id*bloque*step;
+  double fin = (id+1)*bloque*step;
+
   pilocals[id] = 0.;
-  for (int i = id*bloque; i < (id+1)*bloque; ++i) {
-    x = i*1. / numsteps;
+  for (x = ini; x < fin; x += step) {
     pilocals[id] += 4. / (1. + x*x);
   }
 }
